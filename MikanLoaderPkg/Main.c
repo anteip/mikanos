@@ -4,22 +4,22 @@
 #include  <Library/PrintLib.h>
 #include  <Protocol/LoadedImage.h>
 #include  <Protocol/SimpleFileSystem.h>
-#include  <Protocol/Disk2Io.h>
+#include  <Protocol/DiskIo2.h>
 #include  <Protocol/BlockIo.h>
 
-// #@@range_bigin(struct_memory_map)
+// #@@range_begin(struct_memory_map)
 struct MemoryMap {
   UINTN buffer_size;
   VOID* buffer;
   UINTN map_size;
   UINTN map_key;
-  UINTN descriptor_;
-  UINT32 descriptor__version;
+  UINTN descriptor_size;
+  UINT32 descriptor_version;
 };
 // #@@range_end(struct_memory_map)  
 
-// #@@range_bigin(get_memory_map)
-EFI_STATUS GetFMemoryMap(struct MemoryMap* map){
+// #@@range_begin(get_memory_map)
+EFI_STATUS GetMemoryMap(struct MemoryMap* map){
   if (map->buffer == NULL){
     return EFI_BUFFER_TOO_SMALL;
   }
@@ -34,13 +34,13 @@ EFI_STATUS GetFMemoryMap(struct MemoryMap* map){
 }
 // #@@range_end(get_memory_map)
 
-// #@@range_bigin(get_memory_type)
+// #@@range_begin(get_memory_type)
 const CHAR16* GetMemoryTypeUnicode(EFI_MEMORY_TYPE type) {
   switch (type) {
     case EfiReservedMemoryType: return L"EfiReservedMemoryType";
     case EfiLoaderCode: return L"EfiLoaderCode";
     case EfiLoaderData: return L"EfiLoaderData";
-    case EfiBootServicesCode: return L"EfiBootDervicesCode";
+    case EfiBootServicesCode: return L"EfiBootServicesCode";
     case EfiBootServicesData: return L"EfiBootServicesData";
     case EfiRuntimeServicesCode: return L"EfiRuntimeServicesCode";
     case EfiRuntimeServicesData: return L"EfiRuntimeServicesData";
@@ -49,7 +49,7 @@ const CHAR16* GetMemoryTypeUnicode(EFI_MEMORY_TYPE type) {
     case EfiACPIReclaimMemory: return L"EfiACPIReclaimMemory";
     case EfiACPIMemoryNVS: return L"EfiACPIMemoryNVS";
     case EfiMemoryMappedIO: return L"EfiMemoryMappedIO";
-    case EfiMemoryMappedIOPortSpace: return L"EfiMemoryMappedIOPortSpace"
+    case EfiMemoryMappedIOPortSpace: return L"EfiMemoryMappedIOPortSpace";
     case EfiPalCode: return L"EfiPalCode";
     case EfiPersistentMemory: return L"EfiPersistentMemory";
     case EfiMaxMemoryType: return L"EfiMaxMemoryType";
@@ -59,7 +59,7 @@ const CHAR16* GetMemoryTypeUnicode(EFI_MEMORY_TYPE type) {
 // #@@range_end(get_memory_type)
 
 // #@@range_bigin(save_memory_map)
-EFI_STATUS SaveMemoryMap(struct MemoryMap* map, EFI_FILE_PROTCOL* file){
+EFI_STATUS SaveMemoryMap(struct MemoryMap* map, EFI_FILE_PROTOCOL* file){
   CHAR8 buf[256];
   UINTN len;
 
@@ -92,7 +92,7 @@ EFI_STATUS SaveMemoryMap(struct MemoryMap* map, EFI_FILE_PROTCOL* file){
 
 EFI_STATUS OpenRootDir(EFI_HANDLE image_handle, EFI_FILE_PROTCOL** root) {
   EFI_LOADED_IMAGE_PROTCOL* loaded_image;
-  EFI_SIMPLE_FILE_SYSTEM_PROTCOL* fs;
+  EFI_SIMPLE_FILE_SYSTEM_PROTOCOL* fs;
 
   gBS->OpenProtcol(
       image_handle,
@@ -100,7 +100,7 @@ EFI_STATUS OpenRootDir(EFI_HANDLE image_handle, EFI_FILE_PROTCOL** root) {
       (VOID**)&loaded_image,
       image_handle,
       NULL,
-      EFI_OPEN_PROTCOL_BY_HANDLE_PLOTCOL);
+      EFI_OPEN_PROTCOL_BY_HANDLE_PLOTOCOL);
 
   fs->OpenVolume(fs, root);
 
