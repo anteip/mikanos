@@ -68,7 +68,7 @@ EFI_STATUS SaveMemoryMap(struct MemoryMap* map, EFI_FILE_PROTOCOL* file) {
   len = AsciiStrLen(header);
   file->Write(file, &len, header);
 
-  Print(L"map->buffer = %081x, map->map_size = %081x\n",
+  Print(L"map->buffer = %08lx, map->map_size = %08lx\n",
       map->buffer, map->map_size);
 
   EFI_PHYSICAL_ADDRESS iter;
@@ -79,7 +79,7 @@ EFI_STATUS SaveMemoryMap(struct MemoryMap* map, EFI_FILE_PROTOCOL* file) {
     EFI_MEMORY_DESCRIPTOR* desc = (EFI_MEMORY_DESCRIPTOR*)iter;
     len = AsciiSPrint(
         buf, sizeof(buf),
-        "%u, %x, %-ls, %081x, %lx, %lx\n",
+        "%u, %x, %-ls, %08lx, %lx, %lx\n",
         i, desc->Type, GetMemoryTypeUnicode(desc->Type),
         desc->PhysicalStart, desc->NumberOfPages,
         desc->Attribute & 0xffffflu);
@@ -102,6 +102,14 @@ EFI_STATUS OpenRootDir(EFI_HANDLE image_handle, EFI_FILE_PROTOCOL** root) {
       NULL,
       EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
 
+  gBS->OpenProtocol(
+      loaded_image->DeviceHandle,
+      &gEfiSimpleFileSystemProtocolGuid,
+      (VOID**)&fs
+      image_handle,
+      NULL,
+      EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
+
   fs->OpenVolume(fs, root);
 
   return EFI_SUCCESS;
@@ -112,16 +120,16 @@ EFI_STATUS EFIAPI UefiMain(
     EFI_SYSTEM_TABLE* system_table) {
   Print(L"Hello, Mikan World!\n");
 
-  // #@range_begin(main)
+  // #@@range_begin(main)
   CHAR8 memmap_buf[4096 * 4];
   struct MemoryMap memmap = {sizeof(memmap_buf), memmap_buf, 0, 0, 0, 0};
 
   GetMemoryMap(&memmap);
   
-  EFI_FILE_PROTOCOL* root_dir:
+  EFI_FILE_PROTOCOL* root_dir;
   OpenRootDir(image_handle, &root_dir);
   
-  EFI_FILE_PROTOCOL* memmap_file:
+  EFI_FILE_PROTOCOL* memmap_file;
   root_dir->Open(
       root_dir, &memmap_file, L"\\memmap",
       EFI_FILE_MODE_READ | EFI_FILE_MODE_WRITE | EFI_FILE_MODE_CREATE, 0);
