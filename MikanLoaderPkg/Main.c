@@ -20,7 +20,7 @@ struct MemoryMap {
 
 // #@@range_begin(get_memory_map)
 EFI_STATUS GetMemoryMap(struct MemoryMap* map) {
-  if (map->buffer == NULL){
+  if (map->buffer == NULL) {
     return EFI_BUFFER_TOO_SMALL;
   }
 
@@ -75,11 +75,11 @@ EFI_STATUS SaveMemoryMap(struct MemoryMap* map, EFI_FILE_PROTOCOL* file) {
   int i;
   for (iter = (EFI_PHYSICAL_ADDRESS)map->buffer, i = 0;
        iter < (EFI_PHYSICAL_ADDRESS)map->buffer + map->map_size;
-       iter += map->description_size, i++) {
+       iter += map->descriptor_size, i++) {
     EFI_MEMORY_DESCRIPTOR* desc = (EFI_MEMORY_DESCRIPTOR*)iter;
     len = AsciiSPrint(
         buf, sizeof(buf),
-        "%u, %x, %-ls, %081x, %lx, %lx/n",
+        "%u, %x, %-ls, %081x, %lx, %lx\n",
         i, desc->Type, GetMemoryTypeUnicode(desc->Type),
         desc->PhysicalStart, desc->NumberOfPages,
         desc->Attribute & 0xffffflu);
@@ -100,7 +100,7 @@ EFI_STATUS OpenRootDir(EFI_HANDLE image_handle, EFI_FILE_PROTOCOL** root) {
       (VOID**)&loaded_image,
       image_handle,
       NULL,
-      EFI_OPEN_PROTOCOL_BY_HANDLE_PLOTOCOL);
+      EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
 
   fs->OpenVolume(fs, root);
 
@@ -109,7 +109,7 @@ EFI_STATUS OpenRootDir(EFI_HANDLE image_handle, EFI_FILE_PROTOCOL** root) {
 
 EFI_STATUS EFIAPI UefiMain(
     EFI_HANDLE image_handle,
-    EFI_SYSTEM_TABLE *system_table) {
+    EFI_SYSTEM_TABLE* system_table) {
   Print(L"Hello, Mikan World!\n");
 
   // #@range_begin(main)
@@ -118,12 +118,12 @@ EFI_STATUS EFIAPI UefiMain(
 
   GetMemoryMap(&memmap);
   
-  EFI_FILE_PROTCOL* root_dir:
+  EFI_FILE_PROTOCOL* root_dir:
   OpenRootDir(image_handle, &root_dir);
   
-  EFI_FILE_PROTOL* memmap_file:
+  EFI_FILE_PROTOCOL* memmap_file:
   root_dir->Open(
-      root_dir, $memmap_file, L"\\memmap",
+      root_dir, &memmap_file, L"\\memmap",
       EFI_FILE_MODE_READ | EFI_FILE_MODE_WRITE | EFI_FILE_MODE_CREATE, 0);
 
   SaveMemoryMap(&memmap, memmap_file);
